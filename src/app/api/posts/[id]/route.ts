@@ -3,15 +3,16 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const resolvedParams = await params;
+
     const post = await prisma.post.findUnique({
-      where: { id: params.id },
+      where: { id: resolvedParams.id },
       include: {
         tags: { include: { tag: true } },
         comments: { orderBy: { createdAt: "desc" } },
-        // ★ ここで作者の id, name, email を一緒に取得するようにします！
         author: { select: { id: true, name: true, email: true } },
       },
     });

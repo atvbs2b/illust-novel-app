@@ -5,8 +5,8 @@ import Link from "next/link";
 import { Book, User, Gamepad2, Hash, PenTool } from "lucide-react"; // ★ PenToolを追加
 import { Post } from "@prisma/client";
 
-// ★ 型定義に author を追加
 type PostWithTags = Post & {
+  caption: string | null;
   tags: {
     tag: {
       id: string;
@@ -80,6 +80,7 @@ export default function Home() {
               {/* 表紙画像があれば表示 */}
               {post.coverImageURL ? (
                 <div className="relative h-48 overflow-hidden border-b bg-gray-100">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={post.coverImageURL}
                     alt={post.title}
@@ -144,9 +145,7 @@ export default function Home() {
                   {post.title}
                 </h2>
                 <p className="line-clamp-3 text-xs leading-relaxed text-gray-500 opacity-80">
-                  {post.type === "GAMEBOOK"
-                    ? "（ゲームブック作品）"
-                    : post.content}
+                  {post.caption ? post.caption : "キャプションがありません"}
                 </p>
               </Link>
 
@@ -157,7 +156,7 @@ export default function Home() {
                   {/* ★ 作者名＆リンクを追加 */}
                   {post.author ? (
                     <Link
-                      href={`/users/${post.author.id}`} // ★ 作者のプロフィールページへのリンク
+                      href={`/users/${post.author.id}`}
                       className="flex w-fit items-center gap-1 font-bold transition hover:text-blue-500 hover:underline"
                     >
                       <PenTool size={10} />

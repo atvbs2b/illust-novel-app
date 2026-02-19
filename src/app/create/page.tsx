@@ -22,6 +22,7 @@ export default function CreatePage() {
 
   const [form, setForm] = useState({
     title: "",
+    caption: "",
     type: "NOVEL",
     coverImageURL: "",
   });
@@ -147,6 +148,19 @@ export default function CreatePage() {
             />
           </div>
 
+          {/* キャプションの入力欄 */}
+          <div className="rounded-xl border bg-white p-4 shadow-sm">
+            <label className="mb-1 block text-sm font-bold text-gray-500">
+              キャプション（あらすじ・説明）
+            </label>
+            <textarea
+              className="h-24 w-full resize-none rounded border p-2 text-sm focus:ring-1 focus:ring-black/20 focus:outline-none"
+              value={form.caption}
+              onChange={(e) => setForm({ ...form, caption: e.target.value })}
+              placeholder="作品のあらすじや、読者へのメッセージを入力してください"
+            />
+          </div>
+
           <div className="rounded-xl border bg-white p-4 shadow-sm">
             <label className="mb-2 block text-sm font-bold text-gray-500">
               ジャンル
@@ -219,6 +233,7 @@ export default function CreatePage() {
             </label>
             <label className="flex h-32 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 transition hover:bg-gray-100">
               {form.coverImageURL ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={form.coverImageURL}
                   alt="表紙画像"

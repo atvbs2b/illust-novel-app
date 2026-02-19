@@ -17,7 +17,8 @@ export async function GET(request: Request) {
       orderBy: { createdAt: "desc" },
       include: {
         tags: { include: { tag: true } },
-        author: { select: { name: true, email: true } }, // ★作者の情報を取得するよう追加
+        // ★ ここを修正！ `id: true` を追加します
+        author: { select: { id: true, name: true, email: true } },
       },
     });
     return NextResponse.json(posts);
@@ -46,6 +47,7 @@ export async function POST(request: Request) {
     const post = await prisma.post.create({
       data: {
         title: body.title,
+        caption: body.caption,
         content: body.content,
         type: body.type,
         coverImageURL: body.coverImageURL,

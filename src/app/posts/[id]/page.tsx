@@ -26,6 +26,7 @@ type NovelSegment = {
 };
 type Post = {
   id: string;
+  caption?: string;
   title: string;
   content: string;
   likeCount: number;
@@ -204,7 +205,7 @@ export default function PostDetailPage() {
     <div
       className={`min-h-screen transition-colors duration-1000 ease-in-out ${currentBg}`}
     >
-      <nav className="pointer-events-none fixed top-0 z-10 w-full p-4">
+      <nav className="pointer-events-none fixed top-8 z-10 w-full p-4">
         <Link
           href="/"
           className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-sm font-bold text-gray-800 shadow-sm backdrop-blur transition hover:bg-white"
@@ -217,6 +218,7 @@ export default function PostDetailPage() {
         <div className="animate-fade-in mb-12 overflow-hidden rounded-2xl bg-white/90 shadow-xl backdrop-blur">
           {post.coverImageURL && (
             <div className="relative h-64 w-full sm:h-80">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={post.coverImageURL}
                 alt={post.title}
@@ -255,10 +257,17 @@ export default function PostDetailPage() {
               <div className="flex items-center gap-4">
                 <span>{new Date(post.createdAt).toLocaleDateString()}</span>
 
+                {/* ★ ここに追加！ キャプションがあれば表示する */}
+                {post.caption && (
+                  <div className="mb-8 rounded-lg border bg-gray-50 p-4 text-sm leading-relaxed whitespace-pre-wrap text-gray-600">
+                    {post.caption}
+                  </div>
+                )}
+
                 {/* 作者リンク */}
                 {post.author ? (
                   <Link
-                    href={`/users/${post.authorId}`}
+                    href={`/users/${post.author.id}`}
                     className="flex items-center gap-1 font-bold text-gray-600 transition hover:text-blue-500"
                   >
                     <PenTool size={14} />

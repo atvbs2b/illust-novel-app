@@ -38,11 +38,12 @@ model User {
 model Post {
   id            String   @id @default(uuid())
   title         String
+  caption       String?   @db.Text
   content       String   // 本文（ゲームブックの場合はJSONが入る）
   coverImageURL String?  // 表紙画像
   type          PostType // 投稿タイプ（下のenumで定義）
   
-  authorId      String?  // ★当面はログインなしでも投稿できるように「?」をつけておく
+  authorId      String
   author        User?    @relation(fields: [authorId], references: [id])
 
   viewCount     Int      @default(0) // 閲覧数（ランキング用）
