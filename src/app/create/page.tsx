@@ -233,7 +233,6 @@ export default function CreatePage() {
             </label>
             <label className="flex h-32 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 transition hover:bg-gray-100">
               {form.coverImageURL ? (
-                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={form.coverImageURL}
                   alt="表紙画像"

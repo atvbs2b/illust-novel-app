@@ -275,7 +275,6 @@ export default function PostDetailPage() {
         <div className="animate-fade-in mb-12 overflow-hidden rounded-2xl bg-white/90 shadow-xl backdrop-blur">
           {post.coverImageURL && (
             <div className="relative h-64 w-full sm:h-80">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={post.coverImageURL}
                 alt={post.title}

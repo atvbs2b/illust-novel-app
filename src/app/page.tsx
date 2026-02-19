@@ -171,7 +171,6 @@ export default function Home() {
                 className="relative block h-48 w-full overflow-hidden bg-gray-100"
               >
                 {post.coverImageURL ? (
-                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={post.coverImageURL}
                     alt={post.title}

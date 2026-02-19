@@ -73,7 +73,6 @@ export default function UserProfilePage() {
               <Link href={`/posts/${post.id}`} className="relative block">
                 {post.coverImageURL ? (
                   <div className="relative h-48 overflow-hidden border-b bg-gray-100">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={post.coverImageURL}
                       alt={post.title}

@@ -5,7 +5,6 @@ import CredentialsProvider from "next-auth/providers/credentials"; // ★変更
 import bcrypt from "bcryptjs"; // ★追加
 
 export const authOptions: NextAuthOptions = {
-  // @ts-expect-error Prismaのカスタム出力先による型の不一致を無視
   adapter: PrismaAdapter(prisma),
   providers: [
     // ★メールアドレス・パスワードログインの設定
@@ -48,7 +47,6 @@ export const authOptions: NextAuthOptions = {
     // セッションにユーザーIDを含めるための設定
     async session({ session, token }) {
       if (session.user) {
-        // @ts-expect-error NextAuthの標準型にidがないため無視
         session.user.id = token.sub;
       }
       return session;
