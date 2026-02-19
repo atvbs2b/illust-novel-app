@@ -16,7 +16,26 @@ import {
 } from "lucide-react";
 import { Post } from "@prisma/client";
 
-type PostWithTags = any;
+type PostWithTags = Post & {
+  isPublished: boolean;
+  caption: string | null;
+  tags: {
+    tag: {
+      id: string;
+      name: string;
+    };
+  }[];
+  _count?: {
+    likes: number;
+    comments: number;
+    bookmarks: number;
+  };
+  author?: {
+    id: string;
+    name: string | null;
+    email: string | null;
+  };
+};
 
 export default function MyPage() {
   const { data: session, status } = useSession();
