@@ -1,0 +1,424 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import {
+  Heart,
+  MessageCircle,
+  Send,
+  RotateCcw,
+  ArrowRight,
+  User,
+  Book,
+  Gamepad2,
+  Hash,
+} from "lucide-react";
+
+type Choice = { label: string; targetId: string };
+type GameScene = { id: string; text: string; bg: string; choices: Choice[] };
+type NovelSegment = {
+  id: string;
+  text: string;
+  bgColor: string;
+  nextLink?: { id: string; label: string };
+};
+type Post = {
+  id: string;
+  title: string;
+  content: string;
+  likeCount: number;
+  type: string;
+  createdAt: string;
+  coverImageURL?: string;
+  comments: {
+    id: string;
+    content: string;
+    authorName: string;
+    createdAt: string;
+  }[];
+  tags: {
+    tag: {
+      id: string;
+      name: string;
+    };
+  }[];
+};
+
+export default function PostDetailPage() {
+  const params = useParams();
+  const router = useRouter();
+  const [post, setPost] = useState<Post | null>(null);
+
+  const [loading, setLoading] = useState(true);
+  const [dreamName, setDreamName] = useState("夢主");
+  const [currentBg, setCurrentBg] = useState("bg-white");
+
+  const [gameScenes, setGameScenes] = useState<GameScene[]>([]);
+  const [currentSceneId, setCurrentSceneId] = useState("start");
+  const [novelSegments, setNovelSegments] = useState<NovelSegment[]>([]);
+
+  const [likes, setLikes] = useState(0);
+  const [hasLiked, setHasLiked] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const [commentName, setCommentName] = useState("");
+
+  useEffect(() => {
+    const fetchPost = async () => {
+      try {
+        const res = await fetch(`/api/posts/${params.id}`);
+        if (!res.ok) throw new Error("Not found");
+        const data = await res.json();
+        setPost(data);
+
+        // likeCountはまだDBのPostモデルに追加してないので、別途Likeテーブルでカウントするのがベストですが
+        // 今回はとりあえずいいねボタンの動作だけ活かします。
+        setLikes(0);
+
+        if (data.type === "GAMEBOOK") {
+          try {
+            const parsed = JSON.parse(data.content);
+            setGameScenes(parsed);
+            const firstScene =
+              parsed.find((s: GameScene) => s.id === "start") || parsed[0];
+            if (firstScene) setCurrentBg(firstScene.bg);
+          } catch (e) {
+            console.error(e);
+          }
+        } else {
+          setNovelSegments(parseNovelContent(data.content || ""));
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPost();
+    const savedName = localStorage.getItem("dreamName");
+    if (savedName) setDreamName(savedName);
+  }, [params.id]);
+
+  const handleGameChoice = (targetId: string) => {
+    setCurrentSceneId(targetId);
+    const nextScene = gameScenes.find((s) => s.id === targetId);
+    if (nextScene) setCurrentBg(nextScene.bg);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleGameReset = () => {
+    setCurrentSceneId("start");
+    const startScene =
+      gameScenes.find((s) => s.id === "start") || gameScenes[0];
+    if (startScene) setCurrentBg(startScene.bg);
+  };
+
+  const parseNovelContent = (fullText: string) => {
+    const parts = fullText.split(/\(\(bg:(.*?)\)\)/);
+    const result: NovelSegment[] = [];
+    let currentColor = "bg-white";
+    parts.forEach((part, i) => {
+      if (i % 2 === 1) {
+        if (part === "black") currentColor = "bg-gray-900 text-white";
+        else if (part === "pink") currentColor = "bg-pink-50 text-gray-800";
+        else if (part === "sunset")
+          currentColor = "bg-orange-100 text-gray-800";
+        else currentColor = "bg-white text-gray-800";
+      } else {
+        if (!part.trim()) return;
+        const nextRegex = /\(\(next:(.*?)\|(.*?)\)\)/;
+        const match = nextRegex.exec(part);
+        let nextLink = undefined;
+        let cleanText = part;
+        if (match) {
+          nextLink = { id: match[1], label: match[2] };
+          cleanText = part.replace(nextRegex, "");
+        }
+        result.push({
+          id: `seg-${i}`,
+          text: cleanText,
+          bgColor: currentColor,
+          nextLink,
+        });
+      }
+    });
+    return result;
+  };
+
+  useEffect(() => {
+    if (post?.type === "GAMEBOOK") return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const color = entry.target.getAttribute("data-color");
+            if (color) setCurrentBg(color);
+          }
+        });
+      },
+      { threshold: 0.5 },
+    );
+    setTimeout(() => {
+      document
+        .querySelectorAll(".novel-segment")
+        .forEach((el) => observer.observe(el));
+    }, 500);
+    return () => observer.disconnect();
+  }, [novelSegments, post?.type]);
+
+  const handleLike = async () => {
+    if (!hasLiked) {
+      setLikes((l) => l + 1);
+      setHasLiked(true);
+      await fetch(`/api/posts/${params.id}/like`, { method: "POST" });
+    }
+  };
+  const handleCommentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!commentText.trim()) return;
+    await fetch(`/api/posts/${params.id}/comment`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        content: commentText,
+        authorName: commentName || "名無しさん",
+      }),
+    });
+    setCommentText("");
+    alert("コメントを送信しました！リロードすると表示されます。");
+  };
+
+  if (loading || !post)
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-black"></div>
+      </div>
+    );
+
+  const currentGameScene = gameScenes.find((s) => s.id === currentSceneId);
+
+  return (
+    <div
+      className={`min-h-screen transition-colors duration-1000 ease-in-out ${currentBg}`}
+    >
+      <nav className="pointer-events-none fixed top-0 z-10 w-full p-4">
+        <Link
+          href="/"
+          className="pointer-events-auto inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-sm font-bold text-gray-800 shadow-sm backdrop-blur transition hover:bg-white"
+        >
+          ← 一覧へ
+        </Link>
+      </nav>
+
+      <main className="mx-auto max-w-3xl px-6 py-24">
+        <div className="animate-fade-in mb-12 overflow-hidden rounded-2xl bg-white/90 shadow-xl backdrop-blur">
+          {post.coverImageURL && (
+            <div className="relative h-64 w-full sm:h-80">
+              <img
+                src={post.coverImageURL}
+                alt={post.title}
+                className="h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent"></div>
+              <div className="absolute bottom-4 left-4 text-white">
+                <div className="mb-2 flex gap-2">
+                  {post.type === "GAMEBOOK" && (
+                    <span className="flex gap-1 rounded bg-purple-600 px-2 py-1 text-xs font-bold">
+                      <Gamepad2 size={12} /> GAMEBOOK
+                    </span>
+                  )}
+                  {post.type === "DREAM" && (
+                    <span className="flex gap-1 rounded bg-pink-500 px-2 py-1 text-xs font-bold">
+                      <User size={12} /> DREAM
+                    </span>
+                  )}
+                  {post.type === "NOVEL" && (
+                    <span className="flex gap-1 rounded bg-blue-600 px-2 py-1 text-xs font-bold">
+                      <Book size={12} /> NOVEL
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="p-8">
+            <h1 className="mb-2 text-3xl leading-tight font-black text-gray-900">
+              {post.title}
+            </h1>
+            <div className="mb-6 flex items-center justify-between text-xs text-gray-400">
+              <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+              <div className="flex gap-2">
+                {post.tags?.map((t) => (
+                  <span
+                    key={t.tag.id}
+                    className="flex items-center gap-1 rounded bg-gray-100 px-2 py-1 text-gray-600"
+                  >
+                    <Hash size={10} />
+                    {t.tag.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {(post.type === "DREAM" || post.type === "GAMEBOOK") && (
+              <div className="flex items-center gap-4 rounded-xl border border-pink-100 bg-pink-50 p-4">
+                <div className="rounded-full bg-pink-200 p-2 text-pink-600">
+                  <User size={20} />
+                </div>
+                <div className="flex-1">
+                  <label className="mb-1 block text-xs font-bold text-pink-500">
+                    主人公の名前
+                  </label>
+                  <input
+                    type="text"
+                    value={dreamName}
+                    onChange={(e) => {
+                      setDreamName(e.target.value);
+                      localStorage.setItem("dreamName", e.target.value);
+                    }}
+                    className="w-full rounded border border-pink-200 bg-white px-3 py-1 text-gray-800 focus:outline-pink-400"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="min-h-[50vh]">
+          {post.type === "GAMEBOOK" && currentGameScene && (
+            <div className="animate-fade-in rounded-2xl border border-white/20 bg-white/80 p-8 shadow-2xl backdrop-blur-md">
+              <div className="prose prose-lg mb-12 max-w-none leading-loose font-medium whitespace-pre-wrap">
+                {currentGameScene.text.replaceAll("((name))", dreamName)}
+              </div>
+              <div className="space-y-4">
+                {currentGameScene.choices.length > 0 ? (
+                  currentGameScene.choices.map((choice, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleGameChoice(choice.targetId)}
+                      className="group flex w-full transform items-center justify-between rounded-xl border-2 border-black/10 bg-white p-5 text-left text-lg font-bold text-gray-800 shadow-sm transition-all hover:-translate-y-1 hover:bg-black hover:text-white"
+                    >
+                      <span>
+                        {choice.label.replaceAll("((name))", dreamName)}
+                      </span>
+                      <ArrowRight className="opacity-0 transition-opacity group-hover:opacity-100" />
+                    </button>
+                  ))
+                ) : (
+                  <div className="rounded-xl bg-gray-50 py-10 text-center">
+                    <p className="mb-6 text-2xl font-black text-gray-300">
+                      THE END
+                    </p>
+                    <button
+                      onClick={handleGameReset}
+                      className="inline-flex items-center gap-2 font-bold text-blue-600 hover:underline"
+                    >
+                      <RotateCcw size={18} /> 最初から読み直す
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {(post.type === "NOVEL" || post.type === "DREAM") && (
+            <div className="space-y-0">
+              {novelSegments.map((seg) => (
+                <div
+                  key={seg.id}
+                  className="novel-segment px-4 py-12 transition-opacity duration-500 md:px-8"
+                  data-color={seg.bgColor}
+                >
+                  <div className="prose prose-xl max-w-none font-serif leading-loose whitespace-pre-wrap">
+                    {seg.text.replaceAll("((name))", dreamName)}
+                  </div>
+                  {seg.nextLink && (
+                    <div className="mt-12 flex justify-center">
+                      <button
+                        onClick={() =>
+                          router.push(`/posts/${seg.nextLink!.id}`)
+                        }
+                        className="group flex items-center gap-3 rounded-full bg-black px-8 py-4 text-lg font-bold text-white shadow-xl transition-transform hover:scale-105"
+                      >
+                        {seg.nextLink.label.replaceAll("((name))", dreamName)}
+                        <ArrowRight className="transition-transform group-hover:translate-x-1" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="mx-auto mt-24 max-w-2xl">
+          <div className="mb-12 flex justify-center">
+            <button
+              onClick={handleLike}
+              className={`group flex items-center gap-3 rounded-full px-10 py-4 text-xl font-black shadow-lg transition-all hover:shadow-xl ${hasLiked ? "scale-105 bg-pink-500 text-white" : "bg-white text-gray-600 hover:scale-105"}`}
+            >
+              <Heart
+                className={`transition-transform group-hover:scale-125 ${hasLiked ? "fill-current" : ""}`}
+                size={28}
+              />
+              <span>{likes} LOVE</span>
+            </button>
+          </div>
+
+          <div className="rounded-2xl bg-white/90 p-8 shadow-lg backdrop-blur">
+            <h3 className="mb-6 flex items-center gap-2 border-b pb-4 text-lg font-bold">
+              <MessageCircle size={20} /> コメント ({post.comments?.length || 0}
+              )
+            </h3>
+            <div className="mb-8 max-h-80 space-y-6 overflow-y-auto pr-2">
+              {post.comments?.map((c) => (
+                <div key={c.id} className="rounded-xl bg-gray-50 p-4">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-sm font-bold text-gray-800">
+                      {c.authorName}
+                    </span>
+                    <span className="text-[10px] text-gray-400">
+                      {new Date(c.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <p className="text-sm leading-relaxed text-gray-700">
+                    {c.content}
+                  </p>
+                </div>
+              ))}
+              {post.comments?.length === 0 && (
+                <p className="py-4 text-center text-sm text-gray-400">
+                  まだコメントはありません。
+                </p>
+              )}
+            </div>
+
+            <form onSubmit={handleCommentSubmit} className="relative">
+              <input
+                type="text"
+                placeholder="お名前 (任意)"
+                className="mb-2 w-full border-b border-gray-200 bg-transparent p-2 text-sm focus:border-black focus:outline-none"
+                value={commentName}
+                onChange={(e) => setCommentName(e.target.value)}
+              />
+              <textarea
+                className="min-h-25 w-full rounded-xl bg-gray-100 p-4 text-sm focus:ring-2 focus:ring-black/10 focus:outline-none"
+                placeholder="感想を伝えよう..."
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                required
+              />
+              <button
+                type="submit"
+                className="absolute right-3 bottom-3 rounded-full bg-black p-2 text-white shadow-md transition hover:bg-gray-800"
+              >
+                <Send size={16} />
+              </button>
+            </form>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}

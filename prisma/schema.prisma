@@ -1,11 +1,116 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// このファイルを更新したら...
+// 0. `npm run dev` や `npx prisma studio` を停止
+// 1. dev.db を削除
+// 2. npx prisma db push
+// 3. npx prisma generate
+// 4. npx prisma db seed
 
 generator client {
   provider = "prisma-client"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider  = "postgresql" // ★ sqlite から postgresql に変更！
+}
+
+// ユーザー（ログイン、投稿、ブックマーク、いいね用）
+model User {
+  id        String     @id @default(uuid())
+  email     String     @unique
+  name      String?
+  posts     Post[]     // 自分が投稿した作品
+  comments  Comment[]  // 自分のコメント
+  likes     Like[]     // 自分がしたいいね
+  bookmarks Bookmark[] // ブックマークした作品
+  createdAt DateTime   @default(now())
+}
+
+// 投稿（小説・夢小説・ゲームブックすべてこれ）
+model Post {
+  id            String   @id @default(uuid())
+  title         String
+  content       String   // 本文（ゲームブックの場合はJSONが入る）
+  coverImageURL String?  // 表紙画像
+  type          PostType // 投稿タイプ（下のenumで定義）
+  
+  authorId      String?  // ★当面はログインなしでも投稿できるように「?」をつけておく
+  author        User?    @relation(fields: [authorId], references: [id])
+
+  viewCount     Int      @default(0) // 閲覧数（ランキング用）
+  published     Boolean  @default(true) // 下書き機能用
+  
+  tags          PostTag[] // タグ（多対多）
+  comments      Comment[]
+  likes         Like[]
+  bookmarks     Bookmark[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// ★投稿タイプの定義（エラーを防ぐため厳格に決める）
+enum PostType {
+  NOVEL    // 普通の小説
+  DREAM    // 夢小説
+  GAMEBOOK // ゲームブック
+}
+
+// タグ（自由に作成・検索可能）
+model Tag {
+  id    String    @id @default(uuid())
+  name  String    @unique // 同じタグ名は作らせない
+  posts PostTag[]
+}
+
+// 投稿とタグをつなぐ中間テーブル
+model PostTag {
+  postId String
+  tagId  String
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId]) // 同じタグを二重につけられないようにする
+}
+
+// コメント
+model Comment {
+  id         String   @id @default(uuid())
+  content    String
+  authorName String   @default("名無し") // ログインしてない人用の名前
+  
+  userId     String?  // ログインしてるならIDが入る
+  user       User?    @relation(fields: [userId], references: [id])
+
+  postId     String
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+}
+
+// いいね機能
+model Like {
+  id        String   @id @default(uuid())
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  userId    String?  // ログインしてればユーザーID（重複防止用）
+  user      User?    @relation(fields: [userId], references: [id])
+  
+  createdAt DateTime @default(now())
+
+  // 1人のユーザーは1つの記事に1回しかいいねできない制約（ログイン時のみ有効）
+  @@unique([postId, userId]) 
+}
+
+// ブックマーク機能（お気に入り）
+model Bookmark {
+  id        String   @id @default(uuid())
+  userId    String   // ブックマークはログイン必須機能とする
+  postId    String
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId]) // 重複ブクマ禁止
 }
