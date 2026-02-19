@@ -47,7 +47,8 @@ export const authOptions: NextAuthOptions = {
     // セッションにユーザーIDを含めるための設定
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.sub;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (session.user as any).id = token.sub;
       }
       return session;
     },
