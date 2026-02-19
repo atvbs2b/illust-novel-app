@@ -43,6 +43,8 @@ model Post {
   coverImageURL String?  // 表紙画像
   type          PostType // 投稿タイプ（下のenumで定義）
   
+isPublished   Boolean   @default(true)
+
   authorId      String
   author        User?    @relation(fields: [authorId], references: [id])
 

@@ -23,25 +23,23 @@ const Header: React.FC = () => {
           {/* 左側：サイトロゴ（既存のまま） */}
           <Link href="/" className="transition-colors hover:text-slate-300">
             <FontAwesomeIcon icon={faDog} className="mr-1" />
-            偽Pixiv
+            Novelplus
           </Link>
 
           {/* 右側：ナビゲーションとログインボタン */}
           <div className="flex items-center gap-4 text-sm md:text-base">
-            {/* 既存のAboutリンク */}
-            <Link
-              href="/about"
-              className="transition-colors hover:text-slate-300"
-            >
-              About
-            </Link>
-
-            {/* ★ここから追加：ログイン状態による表示の切り替え */}
+            {/* ログイン状態による表示の切り替え */}
             {status === "loading" ? (
               <span className="text-sm text-white/70">...</span>
             ) : session ? (
               // ログイン中
               <>
+                <Link
+                  href="/mypage"
+                  className="text-xs font-bold text-white transition-colors hover:text-pink-200 md:text-sm"
+                >
+                  マイページ
+                </Link>
                 <Link
                   href="/settings"
                   className="rounded bg-white/30 px-2 py-1 text-xs transition-colors hover:bg-white/50 md:text-sm"

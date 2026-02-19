@@ -5,7 +5,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }, // ★ Promise対応
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -17,8 +17,6 @@ export async function POST(
     }
 
     const resolvedParams = await params;
-
-    // 確実にユーザーIDを取得する
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
     });
@@ -28,40 +26,30 @@ export async function POST(
         { status: 404 },
       );
 
-    // すでに「いいね」しているかチェック
-    const existingLike = await prisma.like.findFirst({
+    // すでにブクマしているかチェック
+    const existingBookmark = await prisma.bookmark.findUnique({
       where: {
-        postId: resolvedParams.id,
-        userId: user.id,
-      },
-    });
-
-    if (existingLike) {
-      // すでにある場合は削除（いいね解除）
-      await prisma.like.delete({ where: { id: existingLike.id } });
-    } else {
-      // ない場合は作成（いいね追加）
-      await prisma.like.create({
-        data: {
+        userId_postId: {
           postId: resolvedParams.id,
           userId: user.id,
         },
+      },
+    });
+
+    if (existingBookmark) {
+      await prisma.bookmark.delete({ where: { id: existingBookmark.id } });
+    } else {
+      await prisma.bookmark.create({
+        data: { postId: resolvedParams.id, userId: user.id },
       });
     }
 
-    // 最新のいいね数を数え直して返す
-    const likeCount = await prisma.like.count({
-      where: { postId: resolvedParams.id },
-    });
-
-    // hasLiked: !existingLike は「今までなかったら true(いいねした)、あったら false(解除した)」という意味です
     return NextResponse.json({
       success: true,
-      likeCount,
-      hasLiked: !existingLike,
+      isBookmarked: !existingBookmark,
     });
   } catch (error) {
-    console.error("いいねエラー:", error);
+    console.error("ブクマエラー:", error);
     return NextResponse.json(
       { error: "エラーが発生しました" },
       { status: 500 },

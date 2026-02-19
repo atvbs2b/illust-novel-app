@@ -5,25 +5,27 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export async function PUT(request: Request) {
   try {
-    // ログインしているかチェック
     const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
+    if (!session || !session.user || !session.user.email) {
       return NextResponse.json(
         { error: "ログインが必要です" },
         { status: 401 },
       );
     }
 
-    // 送られてきた新しい名前を受け取る
     const { name } = await request.json();
 
-    // データベースの User を更新する
-    // @ts-expect-error NextAuthの型定義にidが含まれていないため無視
-    const userId = session.user.id;
-
+    // 1. ユーザー自身の名前を更新する
     const updatedUser = await prisma.user.update({
-      where: { id: userId },
+      where: { email: session.user.email },
       data: { name: name },
+    });
+
+    // 2. この人が過去に書いたコメントの名前も、すべて一括で新しい名前に上書きする！
+    const newPenName = name || updatedUser.email?.split("@")[0] || "名無し";
+    await prisma.comment.updateMany({
+      where: { userId: updatedUser.id },
+      data: { authorName: newPenName },
     });
 
     return NextResponse.json(updatedUser);

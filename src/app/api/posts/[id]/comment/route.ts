@@ -5,33 +5,45 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    // ★ ログイン状態をチェック
     const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
+    if (!session || !session.user || !session.user.email) {
       return NextResponse.json(
         { error: "ログインが必要です" },
         { status: 401 },
       );
     }
 
+    const resolvedParams = await params;
     const body = await request.json();
+
+    // ★ 最新のユーザー情報をDBから直接取得する（ペンネームを確実に反映するため）
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    });
+    if (!user)
+      return NextResponse.json(
+        { error: "ユーザーが見つかりません" },
+        { status: 404 },
+      );
+
+    // 設定された名前がない場合は、メアドの一部を名前にする
+    const penName = user.name || user.email?.split("@")[0] || "名無し";
 
     const comment = await prisma.comment.create({
       data: {
         content: body.content,
-        // 名前が設定されていなければメールアドレスを入れる
-        authorName: session.user.name || session.user.email || "名無しさん",
-        // @ts-expect-error NextAuthの型定義にidが含まれていないため無視
-        userId: session.user.id, // ★ 誰がコメントしたか記録！
-        postId: params.id,
+        authorName: penName, // ★ ここで最新のペンネームをセット！
+        userId: user.id,
+        postId: resolvedParams.id,
       },
     });
 
     return NextResponse.json(comment);
   } catch (error) {
+    console.error("コメントエラー:", error);
     return NextResponse.json(
       { error: "エラーが発生しました" },
       { status: 500 },

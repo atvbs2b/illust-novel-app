@@ -3,21 +3,26 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-// ■ GET: 記事一覧を取得（ここは今まで通り）
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const typeFilter = searchParams.get("type");
+export const dynamic = "force-dynamic"; // ★ 追加：常に最新のデータを取得する！
 
+// ■ GET: 記事一覧を取得
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const typeFilter = searchParams.get("type");
+    const tagFilter = searchParams.get("tag");
+
     const posts = await prisma.post.findMany({
-      where:
-        typeFilter && typeFilter !== "ALL"
-          ? { type: typeFilter as "NOVEL" | "DREAM" | "GAMEBOOK" }
-          : {},
+      where: {
+        isPublished: true,
+        ...(typeFilter && typeFilter !== "ALL"
+          ? { type: typeFilter as never }
+          : {}),
+        ...(tagFilter ? { tags: { some: { tag: { name: tagFilter } } } } : {}),
+      },
       orderBy: { createdAt: "desc" },
       include: {
         tags: { include: { tag: true } },
-        // ★ ここを修正！ `id: true` を追加します
         author: { select: { id: true, name: true, email: true } },
       },
     });
@@ -30,11 +35,8 @@ export async function GET(request: Request) {
 // ■ POST: 記事を新規投稿
 export async function POST(request: Request) {
   try {
-    // ★ 追加：今ログインしている人の情報を取得
     const session = await getServerSession(authOptions);
-
-    // ログインしていなければ弾く（セキュリティ対策）
-    if (!session || !session.user) {
+    if (!session || !session.user || !session.user.email) {
       return NextResponse.json(
         { error: "ログインが必要です" },
         { status: 401 },
@@ -43,6 +45,14 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const tagList: string[] = Array.isArray(body.tags) ? body.tags : [];
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+    });
+    if (!user)
+      return NextResponse.json(
+        { error: "ユーザーが見つかりません" },
+        { status: 404 },
+      );
 
     const post = await prisma.post.create({
       data: {
@@ -51,10 +61,8 @@ export async function POST(request: Request) {
         content: body.content,
         type: body.type,
         coverImageURL: body.coverImageURL,
-
-        // @ts-expect-error NextAuthの型定義にidが含まれていないため無視
-        authorId: session.user.id,
-
+        isPublished: true,
+        authorId: user.id,
         tags: {
           create: tagList.map((tagName) => ({
             tag: {
@@ -67,10 +75,8 @@ export async function POST(request: Request) {
         },
       },
     });
-
     return NextResponse.json(post);
   } catch (error) {
-    console.error("保存エラー:", error);
     return NextResponse.json({ error: "保存に失敗しました" }, { status: 500 });
   }
 }
