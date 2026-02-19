@@ -10,7 +10,9 @@ export async function GET(
       where: { id: params.id },
       include: {
         tags: { include: { tag: true } },
-        comments: { orderBy: { createdAt: "desc" } }, // コメントも新しい順で取得
+        comments: { orderBy: { createdAt: "desc" } },
+        // ★ ここで作者の id, name, email を一緒に取得するようにします！
+        author: { select: { id: true, name: true, email: true } },
       },
     });
 

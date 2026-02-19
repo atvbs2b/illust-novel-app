@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Book, User, Gamepad2, Hash } from "lucide-react";
+import { Book, User, Gamepad2, Hash, PenTool } from "lucide-react"; // ★ PenToolを追加
 import { Post } from "@prisma/client";
 
+// ★ 型定義に author を追加
 type PostWithTags = Post & {
   tags: {
     tag: {
@@ -12,6 +13,11 @@ type PostWithTags = Post & {
       name: string;
     };
   }[];
+  author?: {
+    id: string;
+    name: string | null;
+    email: string | null;
+  } | null;
 };
 
 export default function Home() {
@@ -64,12 +70,13 @@ export default function Home() {
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {filteredPosts.map((post) => (
-          <Link
-            href={`/posts/${post.id}`}
+          // ★ 大元のLinkをdivに変更し、デザイン（groupなど）はそのまま維持
+          <div
             key={post.id}
-            className="group h-full"
+            className="group flex h-full flex-col overflow-hidden rounded-xl border bg-white transition-all hover:shadow-xl"
           >
-            <div className="flex h-full flex-col overflow-hidden rounded-xl border bg-white transition-all hover:shadow-xl">
+            {/* ★ 画像部分を独立したリンクに */}
+            <Link href={`/posts/${post.id}`} className="relative block">
               {/* 表紙画像があれば表示 */}
               {post.coverImageURL ? (
                 <div className="relative h-48 overflow-hidden border-b bg-gray-100">
@@ -128,34 +135,57 @@ export default function Home() {
                   </div>
                 </div>
               )}
+            </Link>
 
-              <div className="flex flex-1 flex-col p-5">
+            <div className="flex flex-1 flex-col p-5">
+              {/* ★ タイトルと本文を独立したリンクに */}
+              <Link href={`/posts/${post.id}`} className="mb-4 block flex-1">
                 <h2 className="mb-2 text-lg leading-tight font-bold transition group-hover:text-blue-600">
                   {post.title}
                 </h2>
-                <p className="mb-4 line-clamp-3 flex-1 text-xs leading-relaxed text-gray-500 opacity-80">
+                <p className="line-clamp-3 text-xs leading-relaxed text-gray-500 opacity-80">
                   {post.type === "GAMEBOOK"
                     ? "（ゲームブック作品）"
                     : post.content}
                 </p>
+              </Link>
 
-                <div className="mt-auto flex items-center justify-between border-t pt-3 text-[10px] text-gray-400">
+              {/* ★ フッター（日付・作者・タグ）はリンクの外へ */}
+              <div className="mt-auto flex items-end justify-between border-t pt-3 text-[10px] text-gray-400">
+                <div className="flex flex-col gap-1.5">
                   <span>{new Date(post.createdAt).toLocaleDateString()}</span>
-                  <div className="flex flex-wrap justify-end gap-1">
-                    {post.tags?.map((t) => (
-                      <span
-                        key={t.tag.id}
-                        className="flex items-center gap-0.5 rounded bg-gray-100 px-2 py-1 text-gray-600"
-                      >
-                        <Hash size={8} />
-                        {t.tag.name}
-                      </span>
-                    ))}
-                  </div>
+                  {/* ★ 作者名＆リンクを追加 */}
+                  {post.author ? (
+                    <Link
+                      href={`/users/${post.author.id}`} // ★ 作者のプロフィールページへのリンク
+                      className="flex w-fit items-center gap-1 font-bold transition hover:text-blue-500 hover:underline"
+                    >
+                      <PenTool size={10} />
+                      {post.author.name ||
+                        post.author.email?.split("@")[0] ||
+                        "名無し作者"}
+                    </Link>
+                  ) : (
+                    <span className="flex items-center gap-1">
+                      <PenTool size={10} /> 作者不明
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap justify-end gap-1">
+                  {post.tags?.map((t) => (
+                    <span
+                      key={t.tag.id}
+                      className="flex items-center gap-0.5 rounded bg-gray-100 px-2 py-1 text-gray-600"
+                    >
+                      <Hash size={8} />
+                      {t.tag.name}
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>
-          </Link>
+          </div>
         ))}
       </div>
     </main>

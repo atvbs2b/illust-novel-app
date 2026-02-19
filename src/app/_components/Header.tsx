@@ -42,9 +42,12 @@ const Header: React.FC = () => {
             ) : session ? (
               // ログイン中
               <>
-                <span className="rounded bg-white/30 px-2 py-1 text-xs md:text-sm">
-                  {session.user?.email}
-                </span>
+                <Link
+                  href="/settings"
+                  className="rounded bg-white/30 px-2 py-1 text-xs transition-colors hover:bg-white/50 md:text-sm"
+                >
+                  {session.user?.name || session.user?.email?.split("@")[0]}
+                </Link>
                 <button
                   onClick={() => signOut()}
                   className="transition-colors hover:text-slate-300"

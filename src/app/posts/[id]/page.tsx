@@ -13,6 +13,7 @@ import {
   Book,
   Gamepad2,
   Hash,
+  PenTool,
 } from "lucide-react";
 
 type Choice = { label: string; targetId: string };
@@ -43,6 +44,8 @@ type Post = {
       name: string;
     };
   }[];
+  authorId?: string; // 追加
+  author?: { id: string; name: string | null; email: string | null } | null; // 追加
 };
 
 export default function PostDetailPage() {
@@ -243,11 +246,33 @@ export default function PostDetailPage() {
           )}
 
           <div className="p-8">
-            <h1 className="mb-2 text-3xl leading-tight font-black text-gray-900">
+            <h1 className="mb-4 text-3xl leading-tight font-black text-gray-900">
               {post.title}
             </h1>
-            <div className="mb-6 flex items-center justify-between text-xs text-gray-400">
-              <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+
+            {/* ★ 日付と作者名の表示エリア */}
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b pb-4 text-xs text-gray-400">
+              <div className="flex items-center gap-4">
+                <span>{new Date(post.createdAt).toLocaleDateString()}</span>
+
+                {/* 作者リンク */}
+                {post.author ? (
+                  <Link
+                    href={`/users/${post.authorId}`}
+                    className="flex items-center gap-1 font-bold text-gray-600 transition hover:text-blue-500"
+                  >
+                    <PenTool size={14} />
+                    {post.author.name ||
+                      post.author.email?.split("@")[0] ||
+                      "名無し作者"}
+                  </Link>
+                ) : (
+                  <span className="flex items-center gap-1">
+                    <PenTool size={14} /> 作者不明
+                  </span>
+                )}
+              </div>
+
               <div className="flex gap-2">
                 {post.tags?.map((t) => (
                   <span
