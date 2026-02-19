@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Book, User, Gamepad2, Upload, Hash, Plus, X } from "lucide-react";
 
 type Choice = { label: string; targetId: string };
@@ -9,6 +10,15 @@ type Scene = { id: string; text: string; bg: string; choices: Choice[] };
 
 export default function CreatePage() {
   const router = useRouter();
+
+  const { data: session, status: sessionStatus } = useSession();
+
+  useEffect(() => {
+    if (sessionStatus === "unauthenticated") {
+      alert("作品を投稿するにはログインが必要です！");
+      router.push("/api/auth/signin");
+    }
+  }, [sessionStatus, router]);
 
   const [form, setForm] = useState({
     title: "",

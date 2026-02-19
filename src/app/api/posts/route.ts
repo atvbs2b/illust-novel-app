@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-// ■ GET: 記事一覧を取得
+// ■ GET: 記事一覧を取得（ここは今まで通り）
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const typeFilter = searchParams.get("type");
@@ -14,7 +16,8 @@ export async function GET(request: Request) {
           : {},
       orderBy: { createdAt: "desc" },
       include: {
-        tags: { include: { tag: true } }, // タグ情報も一緒に取得
+        tags: { include: { tag: true } },
+        author: { select: { name: true, email: true } }, // ★作者の情報を取得するよう追加
       },
     });
     return NextResponse.json(posts);
@@ -26,18 +29,30 @@ export async function GET(request: Request) {
 // ■ POST: 記事を新規投稿
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    // ★ 追加：今ログインしている人の情報を取得
+    const session = await getServerSession(authOptions);
 
+    // ログインしていなければ弾く（セキュリティ対策）
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: "ログインが必要です" },
+        { status: 401 },
+      );
+    }
+
+    const body = await request.json();
     const tagList: string[] = Array.isArray(body.tags) ? body.tags : [];
 
     const post = await prisma.post.create({
       data: {
         title: body.title,
         content: body.content,
-        type: body.type, // NOVEL, DREAM, GAMEBOOK
+        type: body.type,
         coverImageURL: body.coverImageURL,
 
-        // タグの保存処理（なければ作り、あれば繋ぐ）
+        // @ts-expect-error NextAuthの型定義にidが含まれていないため無視
+        authorId: session.user.id,
+
         tags: {
           create: tagList.map((tagName) => ({
             tag: {

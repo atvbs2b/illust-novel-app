@@ -7,6 +7,7 @@
 
 generator client {
   provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -15,14 +16,22 @@ datasource db {
 
 // ユーザー（ログイン、投稿、ブックマーク、いいね用）
 model User {
-  id        String     @id @default(uuid())
-  email     String     @unique
-  name      String?
-  posts     Post[]     // 自分が投稿した作品
-  comments  Comment[]  // 自分のコメント
-  likes     Like[]     // 自分がしたいいね
-  bookmarks Bookmark[] // ブックマークした作品
-  createdAt DateTime   @default(now())
+  id            String    @id @default(uuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime? // メール認証用（NextAuth必須）
+  image         String?   // アイコン画像用（Googleなどから取得）
+  password      String?   // メール・パスワードログイン用に追加
+
+  // NextAuth用のリレーション
+  accounts      Account[]
+  sessions      Session[]
+
+  posts         Post[]     // 自分が投稿した作品
+  comments      Comment[]  // 自分のコメント
+  likes         Like[]     // 自分がしたいいね
+  bookmarks     Bookmark[] // ブックマークした作品
+  createdAt     DateTime   @default(now())
 }
 
 // 投稿（小説・夢小説・ゲームブックすべてこれ）
@@ -113,4 +122,42 @@ model Bookmark {
   createdAt DateTime @default(now())
 
   @@unique([userId, postId]) // 重複ブクマ禁止
+}
+
+// アカウント連携（GoogleやXのログイン情報を保存する場所）
+model Account {
+  id                 String  @id @default(uuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?  @db.Text
+  access_token       String?  @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?  @db.Text
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+// ログイン状態を管理する場所
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// メール認証などに使うトークン
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
