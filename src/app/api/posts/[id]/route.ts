@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
+export const revalidate = 0;
 export const dynamic = "force-dynamic";
 
 // ■ GET: 作品を1つ取得する

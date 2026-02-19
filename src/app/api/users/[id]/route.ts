@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const revalidate = 0; // ◀ サーバサイドのキャッシュを無効化する設定
+export const dynamic = "force-dynamic"; // ◀ 〃
+
 export async function GET(
   request: Request,
   // ★ 型定義を Promise に変更
