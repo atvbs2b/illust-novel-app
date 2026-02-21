@@ -311,53 +311,41 @@ export default function CreatePage() {
                     <div className="mb-2 text-xs font-bold text-gray-400">
                       読者の選択肢（ボタン）
                     </div>
-                    {/* 変更後：スマホの時は縦に折り返す(flex-wrap)ようにしました */}
                     {scene.choices.map((c, cIdx) => (
-                      <div
-                        key={cIdx}
-                        className="mb-2 flex flex-wrap items-center gap-2 rounded-lg border border-gray-100 bg-white p-3 md:flex-nowrap md:border-none md:p-0"
-                      >
+                      <div key={cIdx} className="flex items-center gap-2">
                         <input
-                          className="w-full flex-1 rounded-lg border px-3 py-2 text-sm focus:border-purple-300 focus:outline-none md:w-auto"
+                          className="flex-1 rounded-lg border px-3 py-2 text-sm focus:border-purple-300 focus:outline-none"
                           placeholder="ボタンに表示する文字"
                           value={c.label}
                           onChange={(e) =>
                             updateChoice(sIdx, cIdx, "label", e.target.value)
                           }
                         />
-                        <div className="flex w-full items-center justify-end gap-2 md:w-auto">
-                          <span className="hidden text-xs font-bold text-gray-400 md:inline">
-                            ▶︎
-                          </span>
-                          <select
-                            className="flex-1 cursor-pointer rounded-lg border px-2 py-2 text-sm focus:border-purple-300 md:w-32 md:flex-none"
-                            value={c.targetId}
-                            onChange={(e) =>
-                              updateChoice(
-                                sIdx,
-                                cIdx,
-                                "targetId",
-                                e.target.value,
-                              )
-                            }
-                          >
-                            {scenes.map((s) => (
-                              <option key={s.id} value={s.id}>
-                                {s.id} へ
-                              </option>
-                            ))}
-                          </select>
-                          <button
-                            type="button"
-                            onClick={() => removeChoice(sIdx, cIdx)}
-                            className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500"
-                          >
-                            <X size={16} />
-                          </button>
-                        </div>
+                        <span className="text-xs font-bold text-gray-400">
+                          ▶︎
+                        </span>
+                        <select
+                          className="w-32 cursor-pointer rounded-lg border px-2 py-2 text-sm focus:border-purple-300"
+                          value={c.targetId}
+                          onChange={(e) =>
+                            updateChoice(sIdx, cIdx, "targetId", e.target.value)
+                          }
+                        >
+                          {scenes.map((s) => (
+                            <option key={s.id} value={s.id}>
+                              {s.id} へ
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => removeChoice(sIdx, cIdx)}
+                          className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                        >
+                          <X size={16} />
+                        </button>
                       </div>
                     ))}
-
                     <button
                       type="button"
                       onClick={() => addChoice(sIdx)}
