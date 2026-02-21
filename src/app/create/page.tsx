@@ -285,22 +285,6 @@ export default function CreatePage() {
                   key={sIdx}
                   className="relative rounded-xl border border-gray-200 bg-gray-50 p-5 shadow-sm"
                 >
-                  <div className="mb-3 flex items-center justify-between">
-                    <span className="rounded-md bg-purple-600 px-3 py-1 text-xs font-bold text-white shadow-sm">
-                      ID: {scene.id}
-                    </span>
-                    <select
-                      className="cursor-pointer rounded-lg border-gray-200 p-1 text-xs font-bold focus:ring-purple-300"
-                      value={scene.bg}
-                      onChange={(e) => updateScene(sIdx, "bg", e.target.value)}
-                    >
-                      <option value="bg-white">背景：白</option>
-                      <option value="bg-gray-900 text-white">背景：黒</option>
-                      <option value="bg-pink-50 text-gray-800">
-                        背景：ピンク
-                      </option>
-                    </select>
-                  </div>
                   <textarea
                     className="mb-3 h-32 w-full resize-y rounded-xl border border-gray-200 p-4 text-sm transition-colors focus:border-purple-300 focus:ring-1 focus:ring-purple-300 focus:outline-none"
                     placeholder="ここにこのシーンの文章を書きます..."
