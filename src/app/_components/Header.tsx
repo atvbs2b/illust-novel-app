@@ -2,12 +2,12 @@
 
 import { twMerge } from "tailwind-merge";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faDog } from "@fortawesome/free-solid-svg-icons";
+import { faBookMedical } from "@fortawesome/free-solid-svg-icons";
 import Link from "next/link";
-import { useSession, signOut } from "next-auth/react"; // ★追加
+import { useSession, signOut } from "next-auth/react";
 
 const Header: React.FC = () => {
-  // ★追加：ログイン状態を取得
+  // ログイン状態を取得
   const { data: session, status } = useSession();
 
   return (
@@ -20,9 +20,9 @@ const Header: React.FC = () => {
             "text-lg font-bold text-white",
           )}
         >
-          {/* 左側：サイトロゴ（既存のまま） */}
+          {/* 左側：サイトロゴ */}
           <Link href="/" className="transition-colors hover:text-slate-300">
-            <FontAwesomeIcon icon={faDog} className="mr-1" />
+            <FontAwesomeIcon icon={faBookMedical} className="mr-1" />
             Novelplus
           </Link>
 
