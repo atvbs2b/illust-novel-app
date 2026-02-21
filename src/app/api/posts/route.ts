@@ -5,16 +5,19 @@ import { authOptions } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
+// ★ 修正1：ソート条件の「型（ルールの枠組み）」をしっかり定義して any を避ける
+type OrderByOption = { createdAt: "desc" } | { likes: { _count: "desc" } };
+
 // ■ GET: 記事一覧を取得
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const typeFilter = searchParams.get("type");
     const tagFilter = searchParams.get("tag");
-    const sortFilter = searchParams.get("sort"); // ★ 追加：ソート順（latest または popular）
+    const sortFilter = searchParams.get("sort"); // ソート順（latest または popular）
 
-    // ★ 変更：並び順を決定する
-    let orderByQuery: any = { createdAt: "desc" }; // デフォルトは新着順
+    // ★ 修正1適用：any ではなく、先ほど作った OrderByOption 型を指定
+    let orderByQuery: OrderByOption = { createdAt: "desc" };
     if (sortFilter === "popular") {
       orderByQuery = { likes: { _count: "desc" } }; // 人気順（いいね数が多い順）
     }
@@ -22,16 +25,17 @@ export async function GET(request: Request) {
     const posts = await prisma.post.findMany({
       where: {
         isPublished: true,
+        // ★ 修正2：as any を as string に変更（URLから取得した値は文字列のため）
         ...(typeFilter && typeFilter !== "ALL"
-          ? { type: typeFilter as any }
+          ? { type: typeFilter as string }
           : {}),
         ...(tagFilter ? { tags: { some: { tag: { name: tagFilter } } } } : {}),
       },
-      orderBy: orderByQuery, // ★ ここに適用
+      orderBy: orderByQuery,
       include: {
         tags: { include: { tag: true } },
         author: { select: { id: true, name: true, email: true } },
-        _count: { select: { likes: true } }, // ★ 追加：いいねの数も画面に送る
+        _count: { select: { likes: true } }, // いいねの数も画面に送る
       },
     });
     return NextResponse.json(posts);
