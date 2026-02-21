@@ -7,7 +7,7 @@ import { config } from "@fortawesome/fontawesome-svg-core";
 config.autoAddCss = false;
 
 import Header from "@/app/_components/Header";
-import { AuthProvider } from "./Providers"; // ★ここを追加！
+import { AuthProvider } from "./Providers";
 
 const zenMaru = Zen_Maru_Gothic({
   weight: ["400", "500", "700"],
@@ -16,7 +16,7 @@ const zenMaru = Zen_Maru_Gothic({
 });
 
 export const metadata: Metadata = {
-  title: "NextBlogApp", // ※タイトルなども元のままです！
+  title: "Novelplus",
   description: "Built to learn Next.js and modern web development.",
 };
 
@@ -31,12 +31,10 @@ const RootLayout: React.FC<Props> = (props) => {
       <body
         className={`${zenMaru.className} min-h-screen bg-pink-50 text-stone-500`}
       >
-        {/* ★ここから：アプリ全体を AuthProvider で包む */}
         <AuthProvider>
           <Header />
           <div className="mx-4 mt-2 max-w-2xl md:mx-auto">{children}</div>
         </AuthProvider>
-        {/* ★ここまで */}
       </body>
     </html>
   );
