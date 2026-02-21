@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
+// ★ 修正3: Prismaが生成した型「PostType」をインポートする
+import { PostType } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
 
-// ★ 修正1：ソート条件の「型（ルールの枠組み）」をしっかり定義して any を避ける
 type OrderByOption = { createdAt: "desc" } | { likes: { _count: "desc" } };
 
 // ■ GET: 記事一覧を取得
@@ -14,20 +15,19 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const typeFilter = searchParams.get("type");
     const tagFilter = searchParams.get("tag");
-    const sortFilter = searchParams.get("sort"); // ソート順（latest または popular）
+    const sortFilter = searchParams.get("sort");
 
-    // ★ 修正1適用：any ではなく、先ほど作った OrderByOption 型を指定
     let orderByQuery: OrderByOption = { createdAt: "desc" };
     if (sortFilter === "popular") {
-      orderByQuery = { likes: { _count: "desc" } }; // 人気順（いいね数が多い順）
+      orderByQuery = { likes: { _count: "desc" } };
     }
 
     const posts = await prisma.post.findMany({
       where: {
         isPublished: true,
-        // ★ 修正2：as any を as string に変更（URLから取得した値は文字列のため）
+        // ★ 修正4：as string を as PostType に変更！
         ...(typeFilter && typeFilter !== "ALL"
-          ? { type: typeFilter as string }
+          ? { type: typeFilter as PostType }
           : {}),
         ...(tagFilter ? { tags: { some: { tag: { name: tagFilter } } } } : {}),
       },
@@ -35,7 +35,7 @@ export async function GET(request: Request) {
       include: {
         tags: { include: { tag: true } },
         author: { select: { id: true, name: true, email: true } },
-        _count: { select: { likes: true } }, // いいねの数も画面に送る
+        _count: { select: { likes: true } },
       },
     });
     return NextResponse.json(posts);
@@ -71,7 +71,8 @@ export async function POST(request: Request) {
         title: body.title,
         caption: body.caption,
         content: body.content,
-        type: body.type,
+        // ★ POST側も一応 as PostType をつけておくと安全です
+        type: body.type as PostType,
         coverImageURL: body.coverImageURL,
         isPublished: true,
         authorId: user.id,
