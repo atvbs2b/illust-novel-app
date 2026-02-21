@@ -3,8 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 
-export const revalidate = 0;
-export const dynamic = "force-dynamic"; // ★ 追加：常に最新のデータを取得する！
+export const dynamic = "force-dynamic";
 
 // ■ GET: 記事一覧を取得
 export async function GET(request: Request) {
@@ -12,37 +11,45 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const typeFilter = searchParams.get("type");
     const tagFilter = searchParams.get("tag");
+    const sortFilter = searchParams.get("sort"); // ★ 追加：ソート順（latest または popular）
+
+    // ★ 変更：並び順を決定する
+    let orderByQuery: any = { createdAt: "desc" }; // デフォルトは新着順
+    if (sortFilter === "popular") {
+      orderByQuery = { likes: { _count: "desc" } }; // 人気順（いいね数が多い順）
+    }
 
     const posts = await prisma.post.findMany({
       where: {
         isPublished: true,
         ...(typeFilter && typeFilter !== "ALL"
-          ? { type: typeFilter as never }
+          ? { type: typeFilter as any }
           : {}),
         ...(tagFilter ? { tags: { some: { tag: { name: tagFilter } } } } : {}),
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: orderByQuery, // ★ ここに適用
       include: {
         tags: { include: { tag: true } },
         author: { select: { id: true, name: true, email: true } },
+        _count: { select: { likes: true } }, // ★ 追加：いいねの数も画面に送る
       },
     });
     return NextResponse.json(posts);
   } catch (error) {
+    console.error("トップページ(GET /api/posts) エラー:", error);
     return NextResponse.json({ error: "取得失敗" }, { status: 500 });
   }
 }
 
-// ■ POST: 記事を新規投稿
+// ■ POST: 記事を新規投稿（ここは変更なし）
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session || !session.user || !session.user.email) {
+    if (!session || !session.user || !session.user.email)
       return NextResponse.json(
         { error: "ログインが必要です" },
         { status: 401 },
       );
-    }
 
     const body = await request.json();
     const tagList: string[] = Array.isArray(body.tags) ? body.tags : [];
