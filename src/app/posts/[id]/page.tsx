@@ -201,6 +201,12 @@ export default function PostDetailPage() {
         else if (part === "pink") currentColor = "bg-pink-50 text-gray-800";
         else if (part === "sunset")
           currentColor = "bg-orange-100 text-gray-800";
+        else if (part === "night")
+          currentColor = "bg-indigo-950 text-indigo-100";
+        else if (part === "sepia") currentColor = "bg-amber-50 text-amber-900";
+        else if (part === "green") currentColor = "bg-green-50 text-gray-800";
+        else if (part === "horror") currentColor = "bg-red-950 text-red-100";
+        else if (part === "purple") currentColor = "bg-purple-50 text-gray-800";
         else currentColor = "bg-white text-gray-800";
       } else {
         if (!part.trim()) return;
