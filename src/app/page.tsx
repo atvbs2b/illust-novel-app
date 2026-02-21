@@ -16,7 +16,6 @@ import {
   Heart,
 } from "lucide-react";
 
-// ★ 追加：_count（いいね数）を受け取れるように型をアップデート
 type PostWithAuthorAndTags = {
   id: string;
   title: string;
@@ -34,7 +33,6 @@ export default function Home() {
   const [typeFilter, setTypeFilter] = useState("ALL");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
 
-  // ★ 追加：並び順のステート（latest: 新着, popular: 人気）
   const [sortOrder, setSortOrder] = useState<"latest" | "popular">("latest");
 
   const [allTags, setAllTags] = useState<string[]>([]);
@@ -49,7 +47,6 @@ export default function Home() {
       });
   }, []);
 
-  // ★ 変更：APIを呼ぶときに sortOrder（並び順） も一緒に送る！
   useEffect(() => {
     let url = `/api/posts?type=${typeFilter}&sort=${sortOrder}`;
     if (selectedTag) {
@@ -69,7 +66,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-50/50">
-      {/* 🌟 ヒーローセクション（ヘッダー部分を華やかに） */}
       <div className="relative overflow-hidden border-b border-gray-100 bg-gradient-to-br from-pink-50 via-white to-purple-50 pt-24 pb-8 shadow-sm md:pt-32 md:pb-12">
         {/* 背景の装飾 */}
         <div className="absolute top-0 left-0 z-0 h-full w-full overflow-hidden opacity-40">
@@ -87,7 +83,7 @@ export default function Home() {
               />
               <input
                 type="text"
-                placeholder="好きなタグやキーワードで探す..."
+                placeholder="好きなタグで探す..."
                 value={searchInput}
                 onChange={(e) => {
                   setSearchInput(e.target.value);
@@ -167,7 +163,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 🌟 メインコンテンツ（作品一覧） */}
+      {/* メインコンテンツ（作品一覧） */}
       <div className="mx-auto w-full max-w-5xl px-4 py-8 md:p-8">
         {/* コントロールバー（並び替え ＆ タグ解除） */}
         <div className="mb-8 flex flex-col items-center justify-between gap-4 md:flex-row">
@@ -189,7 +185,7 @@ export default function Home() {
             )}
           </div>
 
-          {/* ★ 新規：並び順切り替えスイッチ */}
+          {/* 並び順切り替えスイッチ */}
           <div className="flex shrink-0 rounded-full border border-gray-100 bg-white p-1 shadow-sm">
             <button
               onClick={() => setSortOrder("latest")}
@@ -309,7 +305,7 @@ export default function Home() {
                         </span>
                       </Link>
 
-                      {/* ★ 新規：いいね数を表示 */}
+                      {/* いいね数を表示 */}
                       <div className="flex items-center gap-3">
                         {post._count !== undefined && (
                           <span className="flex items-center gap-1 text-pink-400">

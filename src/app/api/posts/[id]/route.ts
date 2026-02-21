@@ -22,7 +22,6 @@ export async function GET(
         comments: { orderBy: { createdAt: "desc" } },
         author: { select: { id: true, name: true, email: true } },
         likes: { include: { user: { select: { email: true } } } },
-        // ★ 追加：ブックマークした人のデータも一緒に画面へ送る！
         bookmarks: { include: { user: { select: { email: true } } } },
       },
     });

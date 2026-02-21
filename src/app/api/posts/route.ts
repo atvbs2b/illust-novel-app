@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-// ★ 修正3: Prismaが生成した型「PostType」をインポートする
 import { PostType } from "@prisma/client";
 
 export const dynamic = "force-dynamic";
@@ -25,7 +24,6 @@ export async function GET(request: Request) {
     const posts = await prisma.post.findMany({
       where: {
         isPublished: true,
-        // ★ 修正4：as string を as PostType に変更！
         ...(typeFilter && typeFilter !== "ALL"
           ? { type: typeFilter as PostType }
           : {}),
@@ -45,7 +43,7 @@ export async function GET(request: Request) {
   }
 }
 
-// ■ POST: 記事を新規投稿（ここは変更なし）
+// ■ POST: 記事を新規投稿
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -71,7 +69,6 @@ export async function POST(request: Request) {
         title: body.title,
         caption: body.caption,
         content: body.content,
-        // ★ POST側も一応 as PostType をつけておくと安全です
         type: body.type as PostType,
         coverImageURL: body.coverImageURL,
         isPublished: true,

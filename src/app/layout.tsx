@@ -17,7 +17,8 @@ const zenMaru = Zen_Maru_Gothic({
 
 export const metadata: Metadata = {
   title: "Novelplus",
-  description: "Built to learn Next.js and modern web development.",
+  description:
+    "Novelplusはオリジナルの小説、夢小説、ゲームブックを投稿・閲覧できるサイトです。小説家志望の方も、気軽に楽しみたい方も大歓迎！タグやランキングで好みの作品を見つけてください。",
 };
 
 type Props = {

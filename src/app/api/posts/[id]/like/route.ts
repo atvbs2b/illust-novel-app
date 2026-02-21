@@ -54,7 +54,6 @@ export async function POST(
       where: { postId: resolvedParams.id },
     });
 
-    // hasLiked: !existingLike は「今までなかったら true(いいねした)、あったら false(解除した)」という意味です
     return NextResponse.json({
       success: true,
       likeCount,

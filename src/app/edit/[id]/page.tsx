@@ -18,7 +18,7 @@ export default function EditPage() {
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  // 1. ページを開いた時に、元の作品のデータを取ってくる
+  // ページを開いた時に、元の作品のデータを取ってくる
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/api/auth/signin");
@@ -45,7 +45,7 @@ export default function EditPage() {
     }
   }, [status, params, router]);
 
-  // 2. 「保存」ボタンを押した時の処理
+  // 「保存」ボタンを押した時の処理
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     const res = await fetch(`/api/posts/${params.id}`, {
@@ -62,7 +62,7 @@ export default function EditPage() {
     }
   };
 
-  // 3. 「削除」ボタンを押した時の処理
+  // 「削除」ボタンを押した時の処理
   const handleDelete = async () => {
     const confirmed = confirm(
       "本当にこの作品を削除しますか？\n（この操作は取り消せません）",

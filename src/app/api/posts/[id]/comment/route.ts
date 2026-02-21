@@ -19,7 +19,7 @@ export async function POST(
     const resolvedParams = await params;
     const body = await request.json();
 
-    // ★ 最新のユーザー情報をDBから直接取得する（ペンネームを確実に反映するため）
+    // 最新のユーザー情報をDBから直接取得する
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
     });
@@ -35,7 +35,7 @@ export async function POST(
     const comment = await prisma.comment.create({
       data: {
         content: body.content,
-        authorName: penName, // ★ ここで最新のペンネームをセット！
+        authorName: penName, // 最新のペンネームをセット
         userId: user.id,
         postId: resolvedParams.id,
       },

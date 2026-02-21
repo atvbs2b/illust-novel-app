@@ -41,12 +41,10 @@ export default function MyPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  // 箱を2つに分けます
   const [myPosts, setMyPosts] = useState<PostWithTags[]>([]);
   const [bookmarkedPosts, setBookmarkedPosts] = useState<PostWithTags[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // ★ 追加：今どちらのタブを開いているかを記憶する箱
   const [activeTab, setActiveTab] = useState<"posts" | "bookmarks">("posts");
 
   useEffect(() => {
@@ -86,7 +84,7 @@ export default function MyPage() {
         </Link>
       </div>
 
-      {/* ★ タブ切り替えボタン */}
+      {/* タブ切り替えボタン */}
       <div className="mb-8 flex gap-4">
         <button
           onClick={() => setActiveTab("posts")}
@@ -110,7 +108,7 @@ export default function MyPage() {
         </button>
       </div>
 
-      {/* ■ 自分の作品タブの中身 ■ */}
+      {/* 自分の作品タブの中身 */}
       {activeTab === "posts" &&
         (myPosts.length === 0 ? (
           <div className="rounded-xl border border-dashed bg-white py-20 text-center font-bold text-gray-400">
@@ -175,7 +173,7 @@ export default function MyPage() {
           </div>
         ))}
 
-      {/* ■ ブックマークタブの中身 ■ */}
+      {/* ブックマークタブの中身 */}
       {activeTab === "bookmarks" &&
         (bookmarkedPosts.length === 0 ? (
           <div className="rounded-xl border border-dashed bg-white py-20 text-center font-bold text-gray-400">

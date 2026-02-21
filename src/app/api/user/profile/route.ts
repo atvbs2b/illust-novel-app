@@ -15,13 +15,13 @@ export async function PUT(request: Request) {
 
     const { name } = await request.json();
 
-    // 1. ユーザー自身の名前を更新する
+    // ユーザー自身の名前を更新する
     const updatedUser = await prisma.user.update({
       where: { email: session.user.email },
       data: { name: name },
     });
 
-    // 2. この人が過去に書いたコメントの名前も、すべて一括で新しい名前に上書きする！
+    // この人が過去に書いたコメントの名前も、すべて一括で新しい名前に上書きする
     const newPenName = name || updatedUser.email?.split("@")[0] || "名無し";
     await prisma.comment.updateMany({
       where: { userId: updatedUser.id },

@@ -19,7 +19,7 @@ export async function GET() {
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
       include: {
-        // ① 自分が投稿した作品
+        // 自分が投稿した作品
         posts: {
           orderBy: { createdAt: "desc" },
           include: {
@@ -29,7 +29,7 @@ export async function GET() {
             },
           },
         },
-        // ② 自分がブックマークした作品
+        // 自分がブックマークした作品
         bookmarks: {
           orderBy: { createdAt: "desc" },
           include: {
@@ -54,7 +54,7 @@ export async function GET() {
       );
     }
 
-    // ブックマークデータから「作品(post)」だけを綺麗に抜き出す
+    // ブックマークデータから作品だけを抜き出す
     const bookmarkedPosts = user.bookmarks.map((b) => b.post);
 
     // 自分の作品とブクマした作品をセットにして返す

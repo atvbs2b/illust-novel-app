@@ -135,7 +135,7 @@ export default function CreatePage() {
       </h1>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-8">
-        {/* ■■ 1. 基本設定エリア ■■ */}
+        {/* 基本設定エリア */}
         <div className="space-y-6">
           <div className="rounded-2xl border bg-white p-6 shadow-sm">
             <label className="mb-2 block text-sm font-bold text-gray-500">
@@ -269,7 +269,7 @@ export default function CreatePage() {
           </div>
         </div>
 
-        {/* ■■ 2. エディタエリア ■■ */}
+        {/* エディタエリア */}
         <div className="min-h-[500px] rounded-2xl border bg-white p-6 shadow-sm md:p-8">
           <label className="mb-4 block border-b pb-3 text-lg font-black text-gray-800">
             本文の執筆
@@ -366,7 +366,6 @@ export default function CreatePage() {
             </div>
           ) : (
             <div className="flex h-full min-h-[400px] flex-col">
-              {/* ★ ここを修正しました！ */}
               <div className="mb-4 flex flex-wrap gap-2 rounded-xl border border-gray-100 bg-gray-50 p-2">
                 {form.type === "DREAM" && (
                   <button
@@ -399,7 +398,7 @@ export default function CreatePage() {
           )}
         </div>
 
-        {/* ■■ 3. 送信ボタン ■■ */}
+        {/*  送信ボタン  */}
         <div className="sticky bottom-4 z-50 pt-4">
           <button className="w-full rounded-2xl bg-gray-900 py-4 text-lg font-black text-white shadow-xl shadow-gray-900/20 transition-all hover:scale-[1.02] hover:bg-black active:scale-[0.98]">
             作品を公開する

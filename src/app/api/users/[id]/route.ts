@@ -6,15 +6,13 @@ export const dynamic = "force-dynamic"; // ◀ 〃
 
 export async function GET(
   request: Request,
-  // ★ 型定義を Promise に変更
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    // ★ ここが最新ルール！ params を使う前に await して中身を取り出す
     const resolvedParams = await params;
 
     const user = await prisma.user.findUnique({
-      where: { id: resolvedParams.id }, // ★ 取り出した resolvedParams を使う
+      where: { id: resolvedParams.id },
       include: {
         posts: {
           orderBy: { createdAt: "desc" },

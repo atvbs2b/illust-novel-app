@@ -65,7 +65,6 @@ export default function PostDetailPage() {
   const [currentSceneId, setCurrentSceneId] = useState("start");
   const [novelSegments, setNovelSegments] = useState<NovelSegment[]>([]);
 
-  // ★ ゲームブックの履歴を保存する箱（復活！）
   const [gameHistory, setGameHistory] = useState<string[]>([]);
 
   const [likes, setLikes] = useState(0);
@@ -115,7 +114,7 @@ export default function PostDetailPage() {
             );
             setHasLiked(userHasLiked);
           }
-          // ★ 追加：自分が「ブックマーク」しているかチェックして緑色にする！
+          // 自分が「ブックマーク」しているかチェックして緑色にする
           if (data.bookmarks) {
             const userHasBookmarked = data.bookmarks.some(
               (bm: { user: { email: string | null | undefined } }) =>
@@ -129,7 +128,7 @@ export default function PostDetailPage() {
           try {
             const parsed = JSON.parse(data.content);
             setGameScenes(parsed);
-            setGameHistory(["start"]); // ★ 履歴の初期化
+            setGameHistory(["start"]); // 履歴の初期化
             const firstScene =
               parsed.find((s: GameScene) => s.id === "start") || parsed[0];
             if (firstScene) setCurrentBg(firstScene.bg);
@@ -152,7 +151,6 @@ export default function PostDetailPage() {
     if (savedName) setDreamName(savedName);
   }, [params.id, session]);
 
-  // ★ 背景の「ぬるっと変化」を監視する魔法
   useEffect(() => {
     if (novelSegments.length === 0) return;
     const observer = new IntersectionObserver(
@@ -171,10 +169,10 @@ export default function PostDetailPage() {
     return () => observer.disconnect();
   }, [novelSegments]);
 
-  // ★ ゲームブックの選択肢を押した時の処理（履歴に追加する！）
+  // ゲームブックの選択肢を押した時の処理
   const handleGameChoice = (targetId: string) => {
     setCurrentSceneId(targetId);
-    setGameHistory((prev) => [...prev, targetId]); // 履歴に追加
+    setGameHistory((prev) => [...prev, targetId]);
     const nextScene = gameScenes.find((s) => s.id === targetId);
     if (nextScene) setCurrentBg(nextScene.bg);
 
@@ -339,7 +337,7 @@ export default function PostDetailPage() {
 
         {/* 本文エリア */}
         <div className="min-h-[50vh]">
-          {/* ★ ゲームブックの表示（履歴形式でループ表示！） */}
+          {/*　ゲームブックの表示 */}
           {post.type === "GAMEBOOK" && gameHistory.length > 0 && (
             <div className="space-y-8 pb-20">
               {gameHistory.map((sceneId, index) => {
