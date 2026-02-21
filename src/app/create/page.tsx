@@ -287,6 +287,11 @@ export default function CreatePage() {
                   key={sIdx}
                   className="relative rounded-xl border border-gray-200 bg-gray-50 p-5 shadow-sm"
                 >
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="rounded-md bg-purple-600 px-3 py-1 text-xs font-bold text-white shadow-sm">
+                      ID: {scene.id}
+                    </span>
+                  </div>
                   <textarea
                     className="mb-3 h-32 w-full resize-y rounded-xl border border-gray-200 p-4 text-sm transition-colors focus:border-purple-300 focus:ring-1 focus:ring-purple-300 focus:outline-none"
                     placeholder="ここにこのシーンの文章を書きます..."
