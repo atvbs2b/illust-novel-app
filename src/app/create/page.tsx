@@ -192,9 +192,10 @@ export default function CreatePage() {
             <label className="mb-3 block text-sm font-bold text-gray-500">
               タグ設定
             </label>
-            <div className="mb-3 flex gap-2">
+            {/* ★ 変更箇所：タグ入力欄をスマホで縦並びにする設定を追加 */}
+            <div className="mb-3 flex flex-col gap-2 md:flex-row">
               <input
-                className="flex-1 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2 text-sm transition-colors focus:border-pink-300 focus:bg-white focus:outline-none"
+                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm transition-colors focus:border-pink-300 focus:bg-white focus:outline-none md:flex-1 md:py-2"
                 placeholder="タグを入力 (Enterで追加)"
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
@@ -205,9 +206,10 @@ export default function CreatePage() {
               <button
                 type="button"
                 onClick={addTag}
-                className="rounded-xl bg-gray-800 px-4 text-white transition-colors hover:bg-black"
+                className="flex w-full items-center justify-center rounded-xl bg-gray-800 px-4 py-3 text-white transition-colors hover:bg-black md:w-auto md:py-2"
               >
                 <Plus size={18} />
+                <span className="ml-1 text-sm font-bold md:hidden">追加</span>
               </button>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -285,49 +287,76 @@ export default function CreatePage() {
                   key={sIdx}
                   className="relative rounded-xl border border-gray-200 bg-gray-50 p-5 shadow-sm"
                 >
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="rounded-md bg-purple-600 px-3 py-1 text-xs font-bold text-white shadow-sm">
+                      ID: {scene.id}
+                    </span>
+                    <select
+                      className="cursor-pointer rounded-lg border-gray-200 p-1 text-xs font-bold focus:ring-purple-300"
+                      value={scene.bg}
+                      onChange={(e) => updateScene(sIdx, "bg", e.target.value)}
+                    >
+                      <option value="bg-white">背景：白</option>
+                      <option value="bg-gray-900 text-white">背景：黒</option>
+                      <option value="bg-pink-50 text-gray-800">
+                        背景：ピンク
+                      </option>
+                    </select>
+                  </div>
                   <textarea
                     className="mb-3 h-32 w-full resize-y rounded-xl border border-gray-200 p-4 text-sm transition-colors focus:border-purple-300 focus:ring-1 focus:ring-purple-300 focus:outline-none"
                     placeholder="ここにこのシーンの文章を書きます..."
                     value={scene.text}
                     onChange={(e) => updateScene(sIdx, "text", e.target.value)}
                   />
-                  <div className="mb-3 space-y-2 rounded-lg border border-gray-100 bg-white p-3">
-                    <div className="mb-2 text-xs font-bold text-gray-400">
+                  <div className="mb-3 space-y-3 rounded-lg border border-gray-100 bg-white p-3 md:space-y-2">
+                    <div className="text-xs font-bold text-gray-400">
                       読者の選択肢（ボタン）
                     </div>
+                    {/* ★ 変更箇所：選択肢をスマホで折り返して表示する設定を追加 */}
                     {scene.choices.map((c, cIdx) => (
-                      <div key={cIdx} className="flex items-center gap-2">
+                      <div
+                        key={cIdx}
+                        className="flex flex-col gap-2 rounded-lg border border-gray-200 bg-gray-50 p-3 md:flex-row md:items-center md:border-none md:bg-transparent md:p-0"
+                      >
                         <input
-                          className="flex-1 rounded-lg border px-3 py-2 text-sm focus:border-purple-300 focus:outline-none"
+                          className="w-full rounded-lg border px-3 py-2 text-sm focus:border-purple-300 focus:outline-none md:flex-1"
                           placeholder="ボタンに表示する文字"
                           value={c.label}
                           onChange={(e) =>
                             updateChoice(sIdx, cIdx, "label", e.target.value)
                           }
                         />
-                        <span className="text-xs font-bold text-gray-400">
-                          ▶︎
-                        </span>
-                        <select
-                          className="w-32 cursor-pointer rounded-lg border px-2 py-2 text-sm focus:border-purple-300"
-                          value={c.targetId}
-                          onChange={(e) =>
-                            updateChoice(sIdx, cIdx, "targetId", e.target.value)
-                          }
-                        >
-                          {scenes.map((s) => (
-                            <option key={s.id} value={s.id}>
-                              {s.id} へ
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          type="button"
-                          onClick={() => removeChoice(sIdx, cIdx)}
-                          className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500"
-                        >
-                          <X size={16} />
-                        </button>
+                        <div className="flex w-full items-center gap-2 md:w-auto md:justify-end">
+                          <span className="hidden text-xs font-bold text-gray-400 md:inline">
+                            ▶︎
+                          </span>
+                          <select
+                            className="flex-1 cursor-pointer rounded-lg border px-2 py-2 text-sm focus:border-purple-300 md:w-32 md:flex-none"
+                            value={c.targetId}
+                            onChange={(e) =>
+                              updateChoice(
+                                sIdx,
+                                cIdx,
+                                "targetId",
+                                e.target.value,
+                              )
+                            }
+                          >
+                            {scenes.map((s) => (
+                              <option key={s.id} value={s.id}>
+                                {s.id} へ
+                              </option>
+                            ))}
+                          </select>
+                          <button
+                            type="button"
+                            onClick={() => removeChoice(sIdx, cIdx)}
+                            className="flex items-center justify-center rounded-lg border border-red-200 bg-red-50 p-2 text-red-500 transition-colors hover:bg-red-100 md:border-none md:bg-transparent md:text-gray-400 md:hover:bg-red-50 md:hover:text-red-500"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
                       </div>
                     ))}
                     <button
@@ -382,7 +411,7 @@ export default function CreatePage() {
           )}
         </div>
 
-        {/*  送信ボタン  */}
+        {/* 送信ボタン  */}
         <div className="sticky bottom-4 z-50 pt-4">
           <button className="w-full rounded-2xl bg-gray-900 py-4 text-lg font-black text-white shadow-xl shadow-gray-900/20 transition-all hover:scale-[1.02] hover:bg-black active:scale-[0.98]">
             作品を公開する
