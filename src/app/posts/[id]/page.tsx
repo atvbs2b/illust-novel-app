@@ -471,7 +471,7 @@ export default function PostDetailPage() {
                       {new Date(c.createdAt).toLocaleDateString()}
                     </span>
                   </div>
-                  <p className="text-sm leading-relaxed text-gray-700">
+                  <p className="text-sm whitespace-pre-wrap text-gray-700">
                     {c.content}
                   </p>
                 </div>
@@ -494,11 +494,11 @@ export default function PostDetailPage() {
                   としてコメントします
                 </div>
                 <textarea
-                  className="min-h-25 w-full resize-none rounded-xl bg-gray-100 p-4 text-sm focus:ring-2 focus:ring-black/10 focus:outline-none"
-                  placeholder="感想を伝えよう..."
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
-                  required
+                  placeholder="感想を伝えよう... "
+                  rows={3}
+                  className="w-full resize-none rounded-lg border border-gray-200 p-3 text-sm focus:border-pink-300 focus:outline-none"
                 />
                 <button
                   type="submit"
